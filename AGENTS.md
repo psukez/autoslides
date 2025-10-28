@@ -29,7 +29,13 @@ The core AI agent processes extracted content from various sources and generates
 
 ## Commands
 
-[Add any specific commands or scripts here for running workflows or agents.]
+- To run the AI agent directly: `python ai_agent.py <content_file> [slide_count] [template]`
+- To trigger PDF extraction: `curl -X POST https://n8n.spektra.ddns.net/webhook/pdf-extract -H "Content-Type: application/json" -d '{"data": "<base64_pdf>"}'`
+- To trigger web scraping: `curl -X POST https://n8n.spektra.ddns.net/webhook/web-scrape -H "Content-Type: application/json" -d '{"url": "https://example.com"}'`
+- To trigger YouTube processing: `curl -X POST https://n8n.spektra.ddns.net/webhook/youtube-transcript -H "Content-Type: application/json" -d '{"videoId": "VIDEO_ID"}'`
+- To trigger content processing: `curl -X POST https://n8n.spektra.ddns.net/webhook/content-process -H "Content-Type: application/json" -d '{"text": "content here"}'`
+- To trigger slide generation: `curl -X POST https://n8n.spektra.ddns.net/webhook/generate-slides -H "Content-Type: application/json" -d '{"content": "processed content", "slideCount": 5}'`
+- To trigger export: `curl -X POST https://n8n.spektra.ddns.net/webhook/export-slides -H "Content-Type: application/json" -d '{"title": "My Presentation"}'`
+- To run the full AutoSlides process: `curl -X POST https://n8n.spektra.ddns.net/webhook/autoslides -H "Content-Type: application/json" -d '{"inputType": "pdf", "data": "<pdf_data>"}'`
 
-Example:
-- To run the n8n workflow: `n8n executeWorkflow workflow.json`
+Note: Workflows need to be activated in n8n and API credentials configured for full functionality.
