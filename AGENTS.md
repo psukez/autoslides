@@ -1,14 +1,27 @@
 # Agents and Workflows
 
-This document outlines the agents and n8n workflows used in the AutoSlides project.
+This document outlines the AI backend, agents, and n8n workflows used in the AutoSlides project.
+
+## AI Backend
+
+The FastAPI backend (`backend.py`) provides REST endpoints for AI slide generation.
+
+- **Technology**: FastAPI with Google Gemini AI
+- **Endpoints**:
+  - `GET /`: Health check
+  - `GET /health`: Detailed health status
+  - `POST /generate-slides`: Generate slides from content
+- **Environment Variables**:
+  - `GOOGLE_AI_API_KEY`: Google AI API key for Gemini
+  - `PORT`: Server port (default 8000)
 
 ## AI Agent
 
-The core AI agent processes extracted content from various sources and generates structured slide content. It uses natural language processing to create coherent text, selects relevant images, and organizes data into tables.
+The core AI agent (`ai_agent.py`) processes extracted content and generates structured slide content using Google Gemini AI.
 
-- **Input**: Raw content from PDFs, web pages, YouTube transcripts.
-- **Output**: Structured slide data with text, images, and tables.
-- **Configuration**: Supports customization of slide count, templates, and user-provided images.
+- **Input**: Raw text content
+- **Output**: JSON with slides containing title, bullet points, images, and tables
+- **Configuration**: Supports customization of slide count and templates
 
 ## n8n Workflows
 
@@ -29,7 +42,19 @@ The core AI agent processes extracted content from various sources and generates
 
 ## Commands
 
+### Backend API
+- To start the backend server: `python backend.py`
+- To generate slides via API:
+  ```bash
+  curl -X POST http://localhost:8000/generate-slides \
+    -H "Content-Type: application/json" \
+    -d '{"content": "Your content", "slide_count": 5}'
+  ```
+
+### AI Agent (Direct)
 - To run the AI agent directly: `python ai_agent.py <content_file> [slide_count] [template]`
+
+### n8n Webhooks
 - To trigger PDF extraction: `curl -X POST https://n8n.spektra.ddns.net/webhook/pdf-extract -H "Content-Type: application/json" -d '{"data": "<base64_pdf>"}'`
 - To trigger web scraping: `curl -X POST https://n8n.spektra.ddns.net/webhook/web-scrape -H "Content-Type: application/json" -d '{"url": "https://example.com"}'`
 - To trigger YouTube processing: `curl -X POST https://n8n.spektra.ddns.net/webhook/youtube-transcript -H "Content-Type: application/json" -d '{"videoId": "VIDEO_ID"}'`
@@ -38,4 +63,8 @@ The core AI agent processes extracted content from various sources and generates
 - To trigger export: `curl -X POST https://n8n.spektra.ddns.net/webhook/export-slides -H "Content-Type: application/json" -d '{"title": "My Presentation"}'`
 - To run the full AutoSlides process: `curl -X POST https://n8n.spektra.ddns.net/webhook/autoslides -H "Content-Type: application/json" -d '{"inputType": "pdf", "data": "<pdf_data>"}'`
 
-Note: Workflows need to be activated in n8n and API credentials configured for full functionality.
+### Frontend
+- To start development server: `cd autoslides-frontend && npm start`
+- To build for production: `cd autoslides-frontend && npm run build`
+
+Note: Workflows need to be activated in n8n, API credentials configured, and backend server running for full functionality.

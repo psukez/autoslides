@@ -10,14 +10,15 @@ import os
 import json
 import sys
 from typing import Dict, List, Any
-import openai  # Requires: pip install openai
+import google.generativeai as genai  # Requires: pip install google-generativeai
 
 class AutoSlidesAgent:
     def __init__(self, api_key: str = None):
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+        self.api_key = api_key or os.getenv('GOOGLE_AI_API_KEY')
         if not self.api_key:
-            raise ValueError("OpenAI API key required")
-        openai.api_key = self.api_key
+            raise ValueError("Google AI API key required")
+        genai.configure(api_key=self.api_key)
+        self.model = genai.GenerativeModel('gemini-1.5-pro')  # Using Gemini 1.5 Pro (Gemini 2.5 Pro not yet available)
 
     def generate_slides(self, content: str, slide_count: int = 5, template: str = "default") -> Dict[str, Any]:
         """
@@ -51,17 +52,21 @@ class AutoSlidesAgent:
                 }}
             ]
         }}
+
+        Return only valid JSON, no additional text.
         """
 
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=2000,
-                temperature=0.7
-            )
+            response = self.model.generate_content(prompt)
+            result = response.text.strip()
 
-            result = response.choices[0].message.content.strip()
+            # Clean up response if it has markdown code blocks
+            if result.startswith('```json'):
+                result = result[7:]
+            if result.endswith('```'):
+                result = result[:-3]
+            result = result.strip()
+
             # Parse JSON response
             slide_data = json.loads(result)
             return slide_data
