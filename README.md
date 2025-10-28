@@ -29,7 +29,7 @@ AutoSlides is a project that leverages n8n workflows and a FastAPI backend to au
    ```
 
 ### n8n Workflows
-1. Install n8n: Follow the [n8n installation guide](https://docs.n8n.io/getting-started/installation/).
+1. Ensure n8n is running in a separate container (e.g., at n8n-container-ip:5678).
 2. Import the AutoSlides workflows from the project.
 3. Configure Google Slides API credentials in n8n.
 
