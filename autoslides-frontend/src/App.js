@@ -41,7 +41,7 @@ function App() {
       }
 
       // Call the backend API
-      const response = await fetch('http://localhost:8000/generate-slides', {
+      const response = await fetch('/api/generate-slides', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
