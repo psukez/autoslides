@@ -34,6 +34,9 @@ const translations = {
     addSourceButton: 'Add Source',
     loading: 'Loading...',
     removeButton: 'Remove',
+    weightLabel: 'Weight (%):',
+    presentationGoalLabel: 'Presentation Goal:',
+    presentationGoalPlaceholder: 'Describe what you expect from the presentation...',
     sourceTypeLabel: 'Type:',
     sourceValueLabel: 'Value:',
     sourcesTitle: 'Sources:',
@@ -70,6 +73,9 @@ const translations = {
     addSourceButton: 'Agregar Fuente',
     loading: 'Cargando...',
     removeButton: 'Eliminar',
+    weightLabel: 'Peso (%):',
+    presentationGoalLabel: 'Objetivo de la Presentación:',
+    presentationGoalPlaceholder: 'Describe qué esperas de la presentación...',
     sourceTypeLabel: 'Tipo:',
     sourceValueLabel: 'Valor:',
     sourcesTitle: 'Fuentes:',
@@ -91,6 +97,8 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [addingSource, setAddingSource] = useState(false);
   const [showKungFu, setShowKungFu] = useState(false);
+  const [sourceWeights, setSourceWeights] = useState([]);
+  const [presentationGoal, setPresentationGoal] = useState('');
 
   const t = (key) => translations[uiLanguage][key] || key;
 
@@ -115,7 +123,11 @@ function App() {
 
         setShowKungFu(true);
         setTimeout(() => {
-          setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
+          const newSources = [...sources, { type: newSourceType, value: newSourceValue.trim(), title }];
+          setSources(newSources);
+          // Initialize weight
+          const equalWeight = Math.round(100 / newSources.length);
+          setSourceWeights([...sourceWeights, equalWeight]);
           setNewSourceValue('');
           setShowKungFu(false);
         }, 1000);
@@ -124,7 +136,11 @@ function App() {
         const title = newSourceValue.split(' ').slice(0, 10).join(' ') + (newSourceValue.split(' ').length > 10 ? '...' : '');
         setShowKungFu(true);
         setTimeout(() => {
-          setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
+          const newSources = [...sources, { type: newSourceType, value: newSourceValue.trim(), title }];
+          setSources(newSources);
+          // Initialize weight
+          const equalWeight = Math.round(100 / newSources.length);
+          setSourceWeights([...sourceWeights, equalWeight]);
           setNewSourceValue('');
           setShowKungFu(false);
         }, 1000);
@@ -136,6 +152,14 @@ function App() {
 
   const removeSource = (index) => {
     setSources(sources.filter((_, i) => i !== index));
+    setSourceWeights(sourceWeights.filter((_, i) => i !== index));
+    // Renormalize remaining weights
+    const remainingWeights = sourceWeights.filter((_, i) => i !== index);
+    const total = remainingWeights.reduce((sum, w) => sum + w, 0);
+    if (total > 0 && remainingWeights.length > 0) {
+      const normalized = remainingWeights.map(w => Math.round((w / total) * 100));
+      setSourceWeights(normalized);
+    }
   };
 
   const openModal = (source) => {
@@ -146,6 +170,17 @@ function App() {
   const closeModal = () => {
     setSelectedSource(null);
     setShowModal(false);
+  };
+
+  const updateSourceWeight = (index, newWeight) => {
+    const updatedWeights = [...sourceWeights];
+    updatedWeights[index] = parseInt(newWeight) || 0;
+    // Normalize to 100%
+    const total = updatedWeights.reduce((sum, w) => sum + w, 0);
+    if (total > 0) {
+      updatedWeights.forEach((w, i) => updatedWeights[i] = Math.round((w / total) * 100));
+    }
+    setSourceWeights(updatedWeights);
   };
 
   const handleSubmit = async (e) => {
@@ -163,6 +198,8 @@ function App() {
     try {
       let requestData = {
         sources: sources,
+        weights: sourceWeights,
+        presentation_goal: presentationGoal,
         slide_count: slideCount,
         template: template,
         language: language
@@ -243,7 +280,19 @@ function App() {
         <ol className="sources-list">
           {sources.map((source, index) => (
             <li key={index} className="source-item">
-              <span>{index + 1}. {source.title}{source.usage ? ` (${source.usage}%)` : ''}</span>
+              <div>
+                <span>{index + 1}. {source.title}{source.usage ? ` (${source.usage}%)` : ''}</span>
+                <div>
+                  <label>{t('weightLabel')} {sourceWeights[index] || 0}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sourceWeights[index] || 0}
+                    onChange={(e) => updateSourceWeight(index, e.target.value)}
+                  />
+                </div>
+              </div>
               <button type="button" className="source-link" onClick={() => openModal(source)}>Ver completo</button>
               <button type="button" onClick={() => removeSource(index)}>{t('removeButton')}</button>
             </li>
@@ -257,6 +306,16 @@ function App() {
       </div>
 
       <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="presentationGoal">{t('presentationGoalLabel')}</label>
+          <textarea
+            id="presentationGoal"
+            value={presentationGoal}
+            onChange={(e) => setPresentationGoal(e.target.value)}
+            placeholder={t('presentationGoalPlaceholder')}
+            rows="3"
+          />
+        </div>
         <div className="form-row">
           <div className="form-group-inline">
             <label htmlFor="slideCount">{t('slideCountLabel')}</label>

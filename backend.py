@@ -40,6 +40,8 @@ async def startup_event():
 
 class SlideRequest(BaseModel):
     sources: List[Dict[str, str]]
+    weights: Optional[List[float]] = None
+    presentation_goal: Optional[str] = None
     slide_count: Optional[int] = 5
     template: Optional[str] = "default"
     language: Optional[str] = "english"
@@ -89,6 +91,8 @@ async def generate_slides(request: SlideRequest):
 
         result = agent.generate_slides(
             sources=request.sources,
+            weights=request.weights,
+            presentation_goal=request.presentation_goal,
             slide_count=request.slide_count or 5,
             template=request.template or "default",
             language=request.language or "english"

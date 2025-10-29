@@ -9,7 +9,7 @@ structured slide data with text, images, and tables.
 import os
 import json
 import sys
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import google.generativeai as genai  # Requires: pip install google-generativeai
 
 class AutoSlidesAgent:
@@ -20,7 +20,7 @@ class AutoSlidesAgent:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('models/gemini-2.5-pro')  # Using Gemini 2.5 Pro
 
-    def generate_slides(self, sources: List[Dict[str, str]], slide_count: int = 5, template: str = "default", language: str = "english") -> Dict[str, Any]:
+    def generate_slides(self, sources: List[Dict[str, str]], weights: Optional[List[float]] = None, presentation_goal: Optional[str] = None, slide_count: int = 5, template: str = "default", language: str = "english") -> Dict[str, Any]:
         """
         Generate structured slide data from multiple sources.
 
@@ -44,6 +44,17 @@ class AutoSlidesAgent:
             combined_content += f"Source {i}: {content_text}\n"
             source_descriptions.append(f"Source {i}: {source['type']} content")
 
+        # Handle weights
+        weights_text = ""
+        if weights and len(weights) == len(sources):
+            weights_dict = {f"source_{i}": weights[i] for i in range(len(weights))}
+            weights_text = f"Use the following weights for source contribution: {weights_dict}. Adjust the content accordingly."
+
+        # Handle presentation goal
+        goal_text = ""
+        if presentation_goal:
+            goal_text = f"Presentation goal: {presentation_goal}. Adjust the slides to meet this goal."
+
         prompt = f"""
         Create {slide_count} presentation slides in {language} from the following sources.
         Each slide should have:
@@ -52,9 +63,13 @@ class AutoSlidesAgent:
         - Optional: Image description or table data
 
         Sources:
-        {combined_content[:4000]}  # Limit content length
+        {combined_content[:3500]}  # Limit content length
 
-        After generating the slides, provide the percentage contribution from each source (e.g., {{"source_0": 40.0, "source_1": 60.0}}).
+        {weights_text}
+
+        {goal_text}
+
+        After generating the slides, provide the actual percentage contribution from each source based on the weights and content used (e.g., {{"source_0": 40.0, "source_1": 60.0}}).
 
         Format as JSON with structure:
         {{
@@ -162,7 +177,7 @@ def main():
     agent = AutoSlidesAgent()
 
     # Generate slides
-    result = agent.generate_slides(sources, slide_count, template, "english")
+    result = agent.generate_slides(sources, None, None, slide_count, template, language)
 
     # Output JSON
     print(json.dumps(result, indent=2))
