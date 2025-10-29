@@ -31,6 +31,11 @@ const translations = {
     loadingText: 'Generating your slides...',
     errorPrefix: 'Failed to generate slides:',
     slidesTitle: 'Generated Slides',
+    addSourceButton: 'Add Source',
+    removeButton: 'Remove',
+    sourceTypeLabel: 'Type:',
+    sourceValueLabel: 'Value:',
+    sourcesTitle: 'Sources:',
   },
   es: {
     appTitle: 'AutoSlides',
@@ -61,16 +66,19 @@ const translations = {
     loadingText: 'Generando tus diapositivas...',
     errorPrefix: 'Error al generar diapositivas:',
     slidesTitle: 'Diapositivas Generadas',
+    addSourceButton: 'Agregar Fuente',
+    removeButton: 'Eliminar',
+    sourceTypeLabel: 'Tipo:',
+    sourceValueLabel: 'Valor:',
+    sourcesTitle: 'Fuentes:',
   },
 };
 
 function App() {
   const [uiLanguage, setUiLanguage] = useState('en');
-  const [inputType, setInputType] = useState('text');
-  const [content, setContent] = useState('');
-  const [url, setUrl] = useState('');
-  const [videoId, setVideoId] = useState('');
-  const [file, setFile] = useState(null);
+  const [sources, setSources] = useState([]);
+  const [newSourceType, setNewSourceType] = useState('text');
+  const [newSourceValue, setNewSourceValue] = useState('');
   const [slideCount, setSlideCount] = useState(5);
   const [template, setTemplate] = useState('default');
   const [language, setLanguage] = useState('english');
@@ -80,33 +88,34 @@ function App() {
 
   const t = (key) => translations[uiLanguage][key] || key;
 
+  const addSource = () => {
+    if (newSourceValue.trim()) {
+      setSources([...sources, { type: newSourceType, value: newSourceValue.trim() }]);
+      setNewSourceValue('');
+    }
+  };
+
+  const removeSource = (index) => {
+    setSources(sources.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (sources.length === 0) {
+      setError(t('errorPrefix') + ' ' + 'Please add at least one source');
+      return;
+    }
     setLoading(true);
     setError('');
     setSlides([]);
 
     try {
       let requestData = {
+        sources: sources,
         slide_count: slideCount,
         template: template,
         language: language
       };
-
-      // Handle different input types
-      if (inputType === 'text') {
-        requestData.content = content;
-      } else if (inputType === 'url') {
-        requestData.url = url;
-      } else if (inputType === 'youtube') {
-        requestData.videoId = videoId;
-      } else if (inputType === 'pdf' && file) {
-        // For file upload, we'd need to handle base64 encoding
-        // This is a placeholder - actual implementation would require file handling
-        setError('PDF upload not yet implemented in frontend');
-        setLoading(false);
-        return;
-      }
 
       // Call the backend API
       const response = await fetch('/generate-slides', {
@@ -135,9 +144,7 @@ function App() {
     }
   };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
+
 
   return (
     <div className="app">
@@ -156,6 +163,33 @@ function App() {
           </select>
         </div>
       </header>
+
+      <div className="sources-section">
+        <h3>{t('sourcesTitle')}</h3>
+        <div className="add-source-form">
+          <select value={newSourceType} onChange={(e) => setNewSourceType(e.target.value)}>
+            <option value="text">{t('textOption')}</option>
+            <option value="url">{t('urlOption')}</option>
+            <option value="youtube">{t('youtubeOption')}</option>
+            <option value="pdf">{t('pdfOption')}</option>
+          </select>
+          <input
+            type="text"
+            value={newSourceValue}
+            onChange={(e) => setNewSourceValue(e.target.value)}
+            placeholder={t('sourceValueLabel')}
+          />
+          <button type="button" onClick={addSource} className="btn">{t('addSourceButton')}</button>
+        </div>
+        <ul className="sources-list">
+          {sources.map((source, index) => (
+            <li key={index} className="source-item">
+              <span>{source.type}: {source.value}</span>
+              <button type="button" onClick={() => removeSource(index)}>{t('removeButton')}</button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
