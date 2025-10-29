@@ -93,7 +93,7 @@ function App() {
   const addSource = async () => {
     if (newSourceValue.trim()) {
       try {
-        const response = await fetch('/generate-summary', {
+        const response = await fetch('/generate-title', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -106,14 +106,14 @@ function App() {
         }
 
         const data = await response.json();
-        const summary = data.summary || (newSourceValue.length > 50 ? newSourceValue.substring(0, 50) + '...' : newSourceValue);
+        const title = data.title || newSourceValue.split(' ').slice(0, 5).join(' ');
 
-        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), summary }]);
+        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
         setNewSourceValue('');
       } catch (err) {
-        // Fallback to simple truncation
-        const summary = newSourceValue.length > 50 ? newSourceValue.substring(0, 50) + '...' : newSourceValue;
-        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), summary }]);
+        // Fallback to first 5 words
+        const title = newSourceValue.split(' ').slice(0, 5).join(' ');
+        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
         setNewSourceValue('');
       }
     }
@@ -217,7 +217,7 @@ function App() {
         <ol className="sources-list">
           {sources.map((source, index) => (
             <li key={index} className="source-item">
-              <span>{source.summary}</span>
+              <span>{index + 1}. {source.title}</span>
               <button type="button" className="source-link" onClick={() => openModal(source)}>Ver completo</button>
               <button type="button" onClick={() => removeSource(index)}>{t('removeButton')}</button>
             </li>

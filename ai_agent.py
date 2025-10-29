@@ -82,40 +82,40 @@ class AutoSlidesAgent:
                 }]
             }
 
-    def generate_summary(self, content: str, max_length: int = 50) -> str:
+    def generate_title(self, content: str) -> str:
         """
-        Generate a brief summary of the content.
+        Generate a concise title (max 5 words) for the content.
 
         Args:
-            content: Text content to summarize
-            max_length: Maximum length of summary
+            content: Text content to generate title for
 
         Returns:
-            Brief summary string
+            Concise title string (max 5 words)
         """
         prompt = f"""
-        Summarize the following text in a brief, concise manner (max {max_length} characters).
-        Focus on the main topic and key points.
+        Generate a concise title (maximum 5 words) for the following content.
+        Focus on the main topic.
 
-        Text: {content[:2000]}  # Limit content length
+        Content: {content[:2000]}  # Limit content length
 
-        Return only the summary text, no additional formatting.
+        Return only the title text, no additional formatting.
         """
 
         try:
             response = self.model.generate_content(prompt)
-            summary = response.text.strip()
+            title = response.text.strip()
 
-            # Truncate if too long
-            if len(summary) > max_length:
-                summary = summary[:max_length - 3] + "..."
+            # Limit to 5 words
+            words = title.split()
+            if len(words) > 5:
+                title = ' '.join(words[:5])
 
-            return summary
+            return title
 
         except Exception as e:
-            # Fallback to simple truncation
-            truncated = content[:max_length - 3] + "..." if len(content) > max_length else content
-            return truncated
+            # Fallback to first 5 words of content
+            words = content.split()[:5]
+            return ' '.join(words)
 
 def main():
     if len(sys.argv) < 2:

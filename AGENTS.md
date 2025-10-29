@@ -11,7 +11,7 @@ The FastAPI backend (`backend.py`) provides REST endpoints for AI slide generati
   - `GET /`: Health check
   - `GET /health`: Detailed health status
   - `POST /generate-slides`: Generate slides from content
-  - `POST /generate-summary`: Generate brief summary of text content
+  - `POST /generate-title`: Generate concise title (max 5 words) for content
 - **Environment Variables**:
   - `GOOGLE_AI_API_KEY`: Google AI API key for Gemini
   - `PORT`: Server port (default 8000)
@@ -22,7 +22,7 @@ The core AI agent (`ai_agent.py`) processes extracted content and generates stru
 
 - **Functions**:
   - `generate_slides()`: Creates presentation slides from content
-  - `generate_summary()`: Creates brief summaries of text content
+  - `generate_title()`: Creates concise titles (max 5 words) for content
 - **Input**: Raw text content
 - **Output**: JSON with slides containing title, bullet points, images, and tables; or summary text
 - **Configuration**: Supports customization of slide count, templates, and summary length
@@ -55,11 +55,11 @@ The core AI agent (`ai_agent.py`) processes extracted content and generates stru
     -d '{"content": "Your content", "slide_count": 5}'
   ```
 
-- To generate summary via API:
+- To generate title via API:
   ```bash
-  curl -X POST http://localhost:8000/generate-summary \
+  curl -X POST http://localhost:8000/generate-title \
     -H "Content-Type: application/json" \
-    -d '{"content": "Your long text content", "max_length": 50}'
+    -d '{"content": "Your long text content"}'
   ```
 
 ### AI Agent (Direct)

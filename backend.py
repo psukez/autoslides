@@ -48,12 +48,11 @@ class SlideResponse(BaseModel):
     slides: list
     error: Optional[str] = None
 
-class SummaryRequest(BaseModel):
+class TitleRequest(BaseModel):
     content: str
-    max_length: Optional[int] = 50
 
-class SummaryResponse(BaseModel):
-    summary: str
+class TitleResponse(BaseModel):
+    title: str
     error: Optional[str] = None
 
 @app.get("/")
@@ -97,19 +96,16 @@ async def generate_slides(request: SlideRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slide generation failed: {str(e)}")
 
-@app.post("/generate-summary", response_model=SummaryResponse)
-async def generate_summary(request: SummaryRequest):
+@app.post("/generate-title", response_model=TitleResponse)
+async def generate_title(request: TitleRequest):
     if agent is None:
         raise HTTPException(status_code=503, detail="AI agent not available")
 
     try:
-        summary = agent.generate_summary(
-            content=request.content,
-            max_length=request.max_length or 50
-        )
-        return SummaryResponse(summary=summary)
+        title = agent.generate_title(content=request.content)
+        return TitleResponse(title=title)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Summary generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Title generation failed: {str(e)}")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
