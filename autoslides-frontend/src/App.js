@@ -32,7 +32,7 @@ const translations = {
     errorPrefix: 'Failed to generate slides:',
     slidesTitle: 'Generated Slides',
     addSourceButton: 'Add Source',
-    generatingTitle: 'Generating title...',
+    loading: 'Loading...',
     removeButton: 'Remove',
     sourceTypeLabel: 'Type:',
     sourceValueLabel: 'Value:',
@@ -68,7 +68,7 @@ const translations = {
     errorPrefix: 'Error al generar diapositivas:',
     slidesTitle: 'Diapositivas Generadas',
     addSourceButton: 'Agregar Fuente',
-    generatingTitle: 'Generando título...',
+    loading: 'Cargando...',
     removeButton: 'Eliminar',
     sourceTypeLabel: 'Tipo:',
     sourceValueLabel: 'Valor:',
@@ -90,6 +90,7 @@ function App() {
   const [selectedSource, setSelectedSource] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [addingSource, setAddingSource] = useState(false);
+  const [showKungFu, setShowKungFu] = useState(false);
 
   const t = (key) => translations[uiLanguage][key] || key;
 
@@ -112,13 +113,21 @@ function App() {
         const data = await response.json();
         const title = data.title || (newSourceValue.split(' ').slice(0, 10).join(' ') + (newSourceValue.split(' ').length > 10 ? '...' : ''));
 
-        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
-        setNewSourceValue('');
+        setShowKungFu(true);
+        setTimeout(() => {
+          setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
+          setNewSourceValue('');
+          setShowKungFu(false);
+        }, 1000);
       } catch (err) {
         // Fallback to first 10 words with ellipsis
         const title = newSourceValue.split(' ').slice(0, 10).join(' ') + (newSourceValue.split(' ').length > 10 ? '...' : '');
-        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
-        setNewSourceValue('');
+        setShowKungFu(true);
+        setTimeout(() => {
+          setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
+          setNewSourceValue('');
+          setShowKungFu(false);
+        }, 1000);
       } finally {
         setAddingSource(false);
       }
@@ -219,7 +228,7 @@ function App() {
             placeholder={t('sourceValueLabel')}
           />
           <button type="button" onClick={addSource} className="btn" disabled={addingSource}>
-            {addingSource ? t('generatingTitle') : t('addSourceButton')}
+            {addingSource ? t('loading') : t('addSourceButton')}
           </button>
         </div>
         <ol className="sources-list">
@@ -230,6 +239,11 @@ function App() {
               <button type="button" onClick={() => removeSource(index)}>{t('removeButton')}</button>
             </li>
           ))}
+          {showKungFu && (
+            <li className="source-item">
+              <span>I know Kung-Fu</span>
+            </li>
+          )}
         </ol>
       </div>
 
