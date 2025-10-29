@@ -32,6 +32,7 @@ const translations = {
     errorPrefix: 'Failed to generate slides:',
     slidesTitle: 'Generated Slides',
     addSourceButton: 'Add Source',
+    generatingTitle: 'Generating title...',
     removeButton: 'Remove',
     sourceTypeLabel: 'Type:',
     sourceValueLabel: 'Value:',
@@ -67,6 +68,7 @@ const translations = {
     errorPrefix: 'Error al generar diapositivas:',
     slidesTitle: 'Diapositivas Generadas',
     addSourceButton: 'Agregar Fuente',
+    generatingTitle: 'Generando título...',
     removeButton: 'Eliminar',
     sourceTypeLabel: 'Tipo:',
     sourceValueLabel: 'Valor:',
@@ -87,11 +89,13 @@ function App() {
   const [slides, setSlides] = useState([]);
   const [selectedSource, setSelectedSource] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [addingSource, setAddingSource] = useState(false);
 
   const t = (key) => translations[uiLanguage][key] || key;
 
   const addSource = async () => {
     if (newSourceValue.trim()) {
+      setAddingSource(true);
       try {
         const response = await fetch('/generate-title', {
           method: 'POST',
@@ -115,6 +119,8 @@ function App() {
         const title = newSourceValue.split(' ').slice(0, 5).join(' ');
         setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
         setNewSourceValue('');
+      } finally {
+        setAddingSource(false);
       }
     }
   };
@@ -212,7 +218,9 @@ function App() {
             onChange={(e) => setNewSourceValue(e.target.value)}
             placeholder={t('sourceValueLabel')}
           />
-          <button type="button" onClick={addSource} className="btn">{t('addSourceButton')}</button>
+          <button type="button" onClick={addSource} className="btn" disabled={addingSource}>
+            {addingSource ? t('generatingTitle') : t('addSourceButton')}
+          </button>
         </div>
         <ol className="sources-list">
           {sources.map((source, index) => (
