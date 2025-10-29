@@ -48,6 +48,14 @@ class SlideResponse(BaseModel):
     slides: list
     error: Optional[str] = None
 
+class SummaryRequest(BaseModel):
+    content: str
+    max_length: Optional[int] = 50
+
+class SummaryResponse(BaseModel):
+    summary: str
+    error: Optional[str] = None
+
 @app.get("/")
 async def root():
     return {"message": "AutoSlides API", "status": "running"}
@@ -88,6 +96,20 @@ async def generate_slides(request: SlideRequest):
         return SlideResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Slide generation failed: {str(e)}")
+
+@app.post("/generate-summary", response_model=SummaryResponse)
+async def generate_summary(request: SummaryRequest):
+    if agent is None:
+        raise HTTPException(status_code=503, detail="AI agent not available")
+
+    try:
+        summary = agent.generate_summary(
+            content=request.content,
+            max_length=request.max_length or 50
+        )
+        return SummaryResponse(summary=summary)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Summary generation failed: {str(e)}")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))

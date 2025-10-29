@@ -85,18 +85,52 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [slides, setSlides] = useState([]);
+  const [selectedSource, setSelectedSource] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const t = (key) => translations[uiLanguage][key] || key;
 
-  const addSource = () => {
+  const addSource = async () => {
     if (newSourceValue.trim()) {
-      setSources([...sources, { type: newSourceType, value: newSourceValue.trim() }]);
-      setNewSourceValue('');
+      try {
+        const response = await fetch('/generate-summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content: newSourceValue.trim() }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const summary = data.summary || (newSourceValue.length > 50 ? newSourceValue.substring(0, 50) + '...' : newSourceValue);
+
+        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), summary }]);
+        setNewSourceValue('');
+      } catch (err) {
+        // Fallback to simple truncation
+        const summary = newSourceValue.length > 50 ? newSourceValue.substring(0, 50) + '...' : newSourceValue;
+        setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), summary }]);
+        setNewSourceValue('');
+      }
     }
   };
 
   const removeSource = (index) => {
     setSources(sources.filter((_, i) => i !== index));
+  };
+
+  const openModal = (source) => {
+    setSelectedSource(source);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setSelectedSource(null);
+    setShowModal(false);
   };
 
   const handleSubmit = async (e) => {
@@ -151,7 +185,7 @@ function App() {
       <header className="header">
         <h1>{t('appTitle')}</h1>
         <p>{t('appDesc')}</p>
-        <div className="form-group">
+        <div className="language-selector">
           <label htmlFor="uiLanguage">{t('uiLanguageLabel')}</label>
           <select
             id="uiLanguage"
@@ -173,60 +207,62 @@ function App() {
             <option value="youtube">{t('youtubeOption')}</option>
             <option value="pdf">{t('pdfOption')}</option>
           </select>
-          <input
-            type="text"
+          <textarea
             value={newSourceValue}
             onChange={(e) => setNewSourceValue(e.target.value)}
             placeholder={t('sourceValueLabel')}
           />
           <button type="button" onClick={addSource} className="btn">{t('addSourceButton')}</button>
         </div>
-        <ul className="sources-list">
+        <ol className="sources-list">
           {sources.map((source, index) => (
             <li key={index} className="source-item">
-              <span>{source.type}: {source.value}</span>
+              <span>{source.summary}</span>
+              <button type="button" className="source-link" onClick={() => openModal(source)}>Ver completo</button>
               <button type="button" onClick={() => removeSource(index)}>{t('removeButton')}</button>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="slideCount">{t('slideCountLabel')}</label>
-          <input
-            type="number"
-            id="slideCount"
-            value={slideCount}
-            onChange={(e) => setSlideCount(parseInt(e.target.value))}
-            min="1"
-            max="20"
-          />
-        </div>
+        <div className="form-row">
+          <div className="form-group-inline">
+            <label htmlFor="slideCount">{t('slideCountLabel')}</label>
+            <input
+              type="number"
+              id="slideCount"
+              value={slideCount}
+              onChange={(e) => setSlideCount(parseInt(e.target.value))}
+              min="1"
+              max="20"
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="language">{t('slidesLanguageLabel')}</label>
-          <select
-            id="language"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-          >
-            <option value="english">{t('english')}</option>
-            <option value="spanish">{t('spanish')}</option>
-          </select>
-        </div>
+          <div className="form-group-inline">
+            <label htmlFor="language">{t('slidesLanguageLabel')}</label>
+            <select
+              id="language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+            >
+              <option value="english">{t('english')}</option>
+              <option value="spanish">{t('spanish')}</option>
+            </select>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="template">{t('templateLabel')}</label>
-          <select
-            id="template"
-            value={template}
-            onChange={(e) => setTemplate(e.target.value)}
-          >
-            <option value="default">{t('defaultOption')}</option>
-            <option value="modern">{t('modernOption')}</option>
-            <option value="minimal">{t('minimalOption')}</option>
-          </select>
+          <div className="form-group-inline">
+            <label htmlFor="template">{t('templateLabel')}</label>
+            <select
+              id="template"
+              value={template}
+              onChange={(e) => setTemplate(e.target.value)}
+            >
+              <option value="default">{t('defaultOption')}</option>
+              <option value="modern">{t('modernOption')}</option>
+              <option value="minimal">{t('minimalOption')}</option>
+            </select>
+          </div>
         </div>
 
         <button type="submit" className="btn" disabled={loading}>
@@ -243,7 +279,7 @@ function App() {
           <h2>{t('slidesTitle')}</h2>
           {slides.map((slide, index) => (
             <div key={index} className="slide">
-              <h3>{slide.title}</h3>
+              <h3>{index + 1}. {slide.title}</h3>
               <ul>
                 {slide.content && slide.content.map((point, i) => (
                   <li key={i}>{point}</li>
@@ -279,6 +315,16 @@ function App() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {showModal && selectedSource && (
+        <div className="modal" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <span className="modal-close" onClick={closeModal}>&times;</span>
+            <h3>{selectedSource.type}</h3>
+            <pre>{selectedSource.value}</pre>
+          </div>
         </div>
       )}
     </div>

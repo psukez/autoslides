@@ -82,6 +82,41 @@ class AutoSlidesAgent:
                 }]
             }
 
+    def generate_summary(self, content: str, max_length: int = 50) -> str:
+        """
+        Generate a brief summary of the content.
+
+        Args:
+            content: Text content to summarize
+            max_length: Maximum length of summary
+
+        Returns:
+            Brief summary string
+        """
+        prompt = f"""
+        Summarize the following text in a brief, concise manner (max {max_length} characters).
+        Focus on the main topic and key points.
+
+        Text: {content[:2000]}  # Limit content length
+
+        Return only the summary text, no additional formatting.
+        """
+
+        try:
+            response = self.model.generate_content(prompt)
+            summary = response.text.strip()
+
+            # Truncate if too long
+            if len(summary) > max_length:
+                summary = summary[:max_length - 3] + "..."
+
+            return summary
+
+        except Exception as e:
+            # Fallback to simple truncation
+            truncated = content[:max_length - 3] + "..." if len(content) > max_length else content
+            return truncated
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python ai_agent.py <content_file> [slide_count] [template]")
