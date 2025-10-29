@@ -110,13 +110,13 @@ function App() {
         }
 
         const data = await response.json();
-        const title = data.title || newSourceValue.split(' ').slice(0, 5).join(' ');
+        const title = data.title || (newSourceValue.split(' ').slice(0, 10).join(' ') + (newSourceValue.split(' ').length > 10 ? '...' : ''));
 
         setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
         setNewSourceValue('');
       } catch (err) {
-        // Fallback to first 5 words
-        const title = newSourceValue.split(' ').slice(0, 5).join(' ');
+        // Fallback to first 10 words with ellipsis
+        const title = newSourceValue.split(' ').slice(0, 10).join(' ') + (newSourceValue.split(' ').length > 10 ? '...' : '');
         setSources([...sources, { type: newSourceType, value: newSourceValue.trim(), title }]);
         setNewSourceValue('');
       } finally {

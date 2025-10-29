@@ -105,17 +105,20 @@ class AutoSlidesAgent:
             response = self.model.generate_content(prompt)
             title = response.text.strip()
 
-            # Limit to 5 words
+            # Limit to 10 words with smooth truncation
             words = title.split()
-            if len(words) > 5:
-                title = ' '.join(words[:5])
+            if len(words) > 10:
+                title = ' '.join(words[:10]) + '...'
 
             return title
 
         except Exception as e:
-            # Fallback to first 5 words of content
-            words = content.split()[:5]
-            return ' '.join(words)
+            # Fallback to first 10 words of content with ellipsis
+            words = content.split()[:10]
+            title = ' '.join(words)
+            if len(content.split()) > 10:
+                title += '...'
+            return title
 
 def main():
     if len(sys.argv) < 2:
