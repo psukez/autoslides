@@ -119,7 +119,7 @@ class AutoSlidesAgent:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python ai_agent.py <content_file> [slide_count] [template]")
+        print("Usage: python3 ai_agent.py <content_file> [slide_count] [template]")
         sys.exit(1)
 
     content_file = sys.argv[1]

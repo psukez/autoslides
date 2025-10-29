@@ -47,7 +47,7 @@ The core AI agent (`ai_agent.py`) processes extracted content and generates stru
 ## Commands
 
 ### Backend API
-- To start the backend server: `python backend.py`
+- To start the backend server: `python3 backend.py`
 - To generate slides via API:
   ```bash
   curl -X POST http://localhost:8000/generate-slides \
@@ -63,7 +63,7 @@ The core AI agent (`ai_agent.py`) processes extracted content and generates stru
   ```
 
 ### AI Agent (Direct)
-- To run the AI agent directly: `python ai_agent.py <content_file> [slide_count] [template]`
+- To run the AI agent directly: `python3 ai_agent.py <content_file> [slide_count] [template]`
 
 ### n8n Webhooks
 - To trigger PDF extraction: `curl -X POST https://n8n.spektra.ddns.net/webhook/pdf-extract -H "Content-Type: application/json" -d '{"data": "<base64_pdf>"}'`
