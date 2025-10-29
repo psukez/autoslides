@@ -18,7 +18,7 @@ class AutoSlidesAgent:
         if not self.api_key:
             raise ValueError("Google AI API key required")
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')  # Using Gemini 1.5 Pro (Gemini 2.5 Pro not yet available)
+        self.model = genai.GenerativeModel('gemini-pro')  # Using Gemini Pro
 
     def generate_slides(self, content: str, slide_count: int = 5, template: str = "default") -> Dict[str, Any]:
         """
