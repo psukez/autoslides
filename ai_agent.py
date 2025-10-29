@@ -20,7 +20,7 @@ class AutoSlidesAgent:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('models/gemini-2.5-pro')  # Using Gemini 2.5 Pro
 
-    def generate_slides(self, content: str, slide_count: int = 5, template: str = "default") -> Dict[str, Any]:
+    def generate_slides(self, content: str, slide_count: int = 5, template: str = "default", language: str = "english") -> Dict[str, Any]:
         """
         Generate structured slide data from content.
 
@@ -33,7 +33,7 @@ class AutoSlidesAgent:
             Dict containing slides with text, images, tables
         """
         prompt = f"""
-        Create {slide_count} presentation slides from the following content.
+        Create {slide_count} presentation slides in {language} from the following content.
         Each slide should have:
         - Title
         - Key points (3-5 bullet points)

@@ -39,9 +39,10 @@ async def startup_event():
         # Continue without agent - endpoints will return errors
 
 class SlideRequest(BaseModel):
-    content: str
+    sources: List[Dict[str, str]]
     slide_count: Optional[int] = 5
     template: Optional[str] = "default"
+    language: Optional[str] = "english"
 
 class SlideResponse(BaseModel):
     slides: list
@@ -63,10 +64,26 @@ async def generate_slides(request: SlideRequest):
         raise HTTPException(status_code=503, detail="AI agent not available")
 
     try:
+        # Combine sources into content
+        combined_content = ""
+        for source in request.sources:
+            if source['type'] == 'text':
+                combined_content += source['value'] + "\n"
+            elif source['type'] == 'url':
+                # TODO: Scrape URL
+                combined_content += f"URL: {source['value']}\n"
+            elif source['type'] == 'youtube':
+                # TODO: Get transcript
+                combined_content += f"YouTube: {source['value']}\n"
+            elif source['type'] == 'pdf':
+                # TODO: Extract PDF text
+                combined_content += f"PDF: {source['value']}\n"
+
         result = agent.generate_slides(
-            content=request.content,
+            content=combined_content.strip(),
             slide_count=request.slide_count or 5,
-            template=request.template or "default"
+            template=request.template or "default",
+            language=request.language or "english"
         )
         return SlideResponse(**result)
     except Exception as e:
