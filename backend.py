@@ -9,7 +9,7 @@ Runs the AI agent server-side in Proxmox LXC.
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import uvicorn
 import os
 from ai_agent import AutoSlidesAgent
