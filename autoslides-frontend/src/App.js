@@ -157,6 +157,8 @@ function App() {
     setLoading(true);
     setError('');
     setSlides([]);
+    // Reset usage percentages
+    setSources(sources.map(source => ({ ...source, usage: undefined })));
 
     try {
       let requestData = {
@@ -181,11 +183,18 @@ function App() {
 
       const data = await response.json();
 
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setSlides(data.slides || []);
-      }
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setSlides(data.slides || []);
+          // Update sources with usage percentages
+          if (data.source_usage) {
+            setSources(sources.map((source, index) => ({
+              ...source,
+              usage: data.source_usage[`source_${index}`] || 0
+            })));
+          }
+        }
     } catch (err) {
       setError(`${err.message}`);
     } finally {
@@ -234,7 +243,7 @@ function App() {
         <ol className="sources-list">
           {sources.map((source, index) => (
             <li key={index} className="source-item">
-              <span>{index + 1}. {source.title}</span>
+              <span>{index + 1}. {source.title}{source.usage ? ` (${source.usage}%)` : ''}</span>
               <button type="button" className="source-link" onClick={() => openModal(source)}>Ver completo</button>
               <button type="button" onClick={() => removeSource(index)}>{t('removeButton')}</button>
             </li>

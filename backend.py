@@ -46,6 +46,7 @@ class SlideRequest(BaseModel):
 
 class SlideResponse(BaseModel):
     slides: list
+    source_usage: Optional[Dict[str, float]] = None
     error: Optional[str] = None
 
 class TitleRequest(BaseModel):
@@ -87,7 +88,7 @@ async def generate_slides(request: SlideRequest):
                 combined_content += f"PDF: {source['value']}\n"
 
         result = agent.generate_slides(
-            content=combined_content.strip(),
+            sources=request.sources,
             slide_count=request.slide_count or 5,
             template=request.template or "default",
             language=request.language or "english"

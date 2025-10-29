@@ -20,26 +20,41 @@ class AutoSlidesAgent:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('models/gemini-2.5-pro')  # Using Gemini 2.5 Pro
 
-    def generate_slides(self, content: str, slide_count: int = 5, template: str = "default", language: str = "english") -> Dict[str, Any]:
+    def generate_slides(self, sources: List[Dict[str, str]], slide_count: int = 5, template: str = "default", language: str = "english") -> Dict[str, Any]:
         """
-        Generate structured slide data from content.
+        Generate structured slide data from multiple sources.
 
         Args:
-            content: Raw text content
+            sources: List of source dicts with 'type' and 'value'
             slide_count: Number of slides to generate
             template: Slide template style
+            language: Language for slides
 
         Returns:
-            Dict containing slides with text, images, tables
+            Dict containing slides, source_usage percentages, and error if any
         """
+        # Process sources
+        combined_content = ""
+        source_descriptions = []
+        for i, source in enumerate(sources):
+            if source['type'] == 'text':
+                content_text = source['value']
+            else:
+                content_text = f"{source['type']}: {source['value']}"
+            combined_content += f"Source {i}: {content_text}\n"
+            source_descriptions.append(f"Source {i}: {source['type']} content")
+
         prompt = f"""
-        Create {slide_count} presentation slides in {language} from the following content.
+        Create {slide_count} presentation slides in {language} from the following sources.
         Each slide should have:
         - Title
         - Key points (3-5 bullet points)
         - Optional: Image description or table data
 
-        Content: {content[:4000]}  # Limit content length
+        Sources:
+        {combined_content[:4000]}  # Limit content length
+
+        After generating the slides, provide the percentage contribution from each source (e.g., {{"source_0": 40.0, "source_1": 60.0}}).
 
         Format as JSON with structure:
         {{
@@ -50,7 +65,8 @@ class AutoSlidesAgent:
                     "image": "image description or null",
                     "table": {{"headers": ["Col1", "Col2"], "rows": [["data1", "data2"]]}} or null
                 }}
-            ]
+            ],
+            "source_usage": {{"source_0": 50.0, "source_1": 50.0}}
         }}
 
         Return only valid JSON, no additional text.
@@ -69,6 +85,12 @@ class AutoSlidesAgent:
 
             # Parse JSON response
             slide_data = json.loads(result)
+            # Ensure source_usage is present
+            if 'source_usage' not in slide_data:
+                # Fallback: equal distribution
+                num_sources = len(sources)
+                equal_usage = 100.0 / num_sources if num_sources > 0 else 0
+                slide_data['source_usage'] = {f"source_{i}": equal_usage for i in range(num_sources)}
             return slide_data
 
         except Exception as e:
@@ -133,11 +155,14 @@ def main():
     with open(content_file, 'r') as f:
         content = f.read()
 
+    # Simulate sources for compatibility
+    sources = [{"type": "text", "value": content}]
+
     # Initialize agent
     agent = AutoSlidesAgent()
 
     # Generate slides
-    result = agent.generate_slides(content, slide_count, template)
+    result = agent.generate_slides(sources, slide_count, template, "english")
 
     # Output JSON
     print(json.dumps(result, indent=2))
